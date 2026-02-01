@@ -17,6 +17,9 @@ class RegistrationDialog(wx.Dialog):
         super().__init__(parent, title="Create play vnt Account", size=(500, 450))
 
         self.server_url = server_url
+        self.username = ""
+        self.password = ""
+        self.is_success = False
         self._create_ui()
         self.CenterOnScreen()
 
@@ -202,8 +205,13 @@ class RegistrationDialog(wx.Dialog):
                 message = await asyncio.wait_for(ws.recv(), timeout=5.0)
                 data = json.loads(message)
 
-                if data.get("type") == "speak":
+                if data.get("type") == "register_success":
+                    self.username = username
+                    self.password = password
+                    self.is_success = True
                     return data.get("text", "Registration successful")
+                elif data.get("type") == "speak":
+                    return data.get("text", "Registration result")
                 else:
                     return "Unexpected response from server"
 
@@ -217,7 +225,7 @@ class RegistrationDialog(wx.Dialog):
         self.register_btn.Enable(True)
 
         # Check if it was successful
-        if "successfully" in message.lower() or "approval" in message.lower():
+        if self.is_success:
             wx.MessageBox(
                 message, "Registration Successful", wx.OK | wx.ICON_INFORMATION
             )

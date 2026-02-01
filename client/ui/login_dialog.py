@@ -265,7 +265,26 @@ class LoginDialog(wx.Dialog):
 
         dlg = RegistrationDialog(self, server_url)
         if dlg.ShowModal() == wx.ID_OK:
-             wx.MessageBox("Account created successfully! Please try to Setup New Account to add it to your list (or wait for approval if required).", "Info", wx.OK)
+            # Automatically add the account to configuration
+            if dlg.username and dlg.password:
+                self.config_manager.add_account(
+                    self.server_id,
+                    dlg.username,
+                    dlg.password
+                )
+                self._refresh_accounts_list()
+                
+                # Find and select the new account
+                for i, account_id in enumerate(self._account_ids):
+                    account = self.config_manager.get_account_by_id(self.server_id, account_id)
+                    if account and account.get("username") == dlg.username:
+                        self.accounts_combo.SetSelection(i)
+                        self._update_delete_button()
+                        break
+                
+                wx.MessageBox(f"Account '{dlg.username}' created and added successfully!", "Success", wx.OK | wx.ICON_INFORMATION)
+            else:
+                 wx.MessageBox("Account created successfully! Please try to Setup New Account to add it to your list.", "Info", wx.OK)
         dlg.Destroy()
     
     def on_setup_account(self, event):

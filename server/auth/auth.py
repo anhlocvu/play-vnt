@@ -93,10 +93,10 @@ class AuthManager:
         if self._db.user_exists(username):
             return False
 
-        # Check if this is the first user - they become server owner and are auto-approved
+        # Check if this is the first user - they become server owner
         is_first_user = self._db.get_user_count() == 0
         trust_level = TrustLevel.SERVER_OWNER if is_first_user else TrustLevel.USER
-        approved = is_first_user  # First user is auto-approved
+        approved = True  # All users are now auto-approved
 
         password_hash = self.hash_password(password)
         self._db.create_user(username, password_hash, locale, trust_level, approved)

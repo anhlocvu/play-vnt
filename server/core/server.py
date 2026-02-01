@@ -476,7 +476,8 @@ class Server(AdministrationMixin):
         # Try to register the user
         if self._auth.register(username, password):
             await client.send({
-                "type": "speak",
+                "type": "register_success",
+                "username": username,
                 "text": "Registration successful! You can now log in with your credentials."
             })
             # Notify admins of new account request (only if user needs approval)
