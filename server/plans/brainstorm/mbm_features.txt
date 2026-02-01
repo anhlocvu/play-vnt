@@ -1,0 +1,172 @@
+if / when condition parameters:
+Condition checks can support these parameters.
+Unless stated in a condition description, assume the user focus and target range can be controlled.
+
+value/type x: string
+Value = a specific card i.e "speed limit" or "flat tire". Type = a group of cards i.e "driving" or "critical hazard".
+If value is an empty string, it represents any value. Type must always be specified, can not be empty.
+
+values/types [x]: list
+Supports multiple values or types that can be used to meet the condition.
+If values is an empty list, it represents any values. Types must always be specified, can not be empty.
+
+user_focus: enum
+exclusive, dismiss, include
+If dismiss, the condition specifically focuses on targets. If include, it focuses on both user and targets. If exclusive, targets are ignored and it focuses only on the user.
+
+min targets: int
+at least this many targets must meet the condition for it to pass.
+If set to -1, min = number of targets in the game, and max is ignored.
+For example, with min of 3 targets, at least 3 targets must exist and pass the condition.
+
+max targets: int
+no more than this many targets must meet the condition for it to pass.
+If set to 0, min targets is ignored. If set to -1, max = number of targets in the game.
+For example, with max of 3 targets, at least 3 targets must exist and pass the condition. If more than three pass, the condition fails.
+
+players p:
+This is a reference to user and / or targets. This means both can be fully customized.
+
+if / when condition condition checks:
+
+int: after players p plays n1 cards of values [x] in the last n2 turns
+Note for devs: If each target should have its own usage count, make this condition for the user and for each target separately.
+Note for devs: If each card value should have its own usage count, make this condition for each value separately.
+if n1 is 0, the condition discourages the player from playing these cards
+n2 specifies the turn limit this condition has to be met. Setting to 0 disables the time limit, using the start of the race as the starting turn.
+examples:
+play 3 "out of gas" or "speed limits" in 1 turn
+For the number of targets, it combines their usage count.
+if n1 = 3, if one target has played two cards and another target has played 1, the condition should pass.
+
+int: after players p plays n1 cards of types [x] in last n2 turns
+Same as values [x] above.
+However uses card types instead of individual card values.
+Note for devs: If each card type should have its own usage count, make this condition for each type separately.
+
+bool: state of values [x] for players p is active
+This equals True if the user/target's vehicle has one or more of the specified values
+Active is a bool, True by default
+examples:
+the user is punctured, the user or 3/5 targets are not flattened
+
+bool: state of types [x] for players p is active
+Same as values [x] above.
+However uses card types instead of individual card values.
+
+bool: state of all values [x] for players p is active
+Same as state of values [x] for players p is active.
+However, all of the specified values must match the state. If one or more values do not match the state, this condition fails.
+
+bool: state of all types [x] for players p is active
+Same as values [x] above.
+However uses card types instead of individual card values.
+
+bool: players p is holding values [x]
+This equals True if the user/target is holding one or more of the specified values in their hand.
+Holding is a bool, True by default
+
+bool: players p is holding types [x]
+Same as values [x] above.
+However uses card types instead of individual card values.
+
+bool: players p is holding all values [x]
+Same as players p is holding values [x].
+However, all of the specified values must match the state. If one or more values do not match the state, this condition fails.
+
+bool: players p is holding all types [x]
+Same as values [x] above.
+However uses card types instead of individual card values.
+
+if / when condition control:
+
+for n turns
+the effect lasts for this many turns
+
+at start of turn bool
+If all conditions are met the effect will automatically trigger at the start of turn.
+
+at end of turn bool
+If all conditions are met the effect will automatically trigger at the end of turn.
+
+if/ when condition effects:
+
+hand manipulation triggers:
+draw n cards
+discard n cards
+draw n, keep n, and discard the rest
+allow playing max of n cards # Doesn't support "at start" and "at end" of turn
+
+speed triggers:
+light speed reducer: reduce a milage card by 1/5 or 2/5 its original value.
+heavy speed reducer: reduce a milage card by 3/5 or 4/5 its original value.
+light speed booster: boost a milage card by 1/5 or 2/5 its original value.
+heavy speed booster: boost a milage card by 3/5 or 4/5 its original value.
+speed multiplier = n at position n
+
+health triggers:
+# 0 turns = permanent
+remove hazard x for n turns
+add hazard x for n turns
+remove all non-critical hazards for n turns
+add all non-critical hazards for n turns
+remove all critical hazards for n turns
+add all critical hazards for n turns
+remove remedy x for n turns
+add remedy x for n turns
+remove all non-critical remedies for n turns
+add all non-critical remedies for n turns
+remove all critical remedies for n turns
+add all critical remedies for n turns
+remove safety x for n turns
+add safety x for n turns
+remove all safeties for n turns
+add all safeties for n turns
+
+accessibility triggers:
+# 0 turns = permanent
+disable playing card x for n turns
+enable playing card x for n turns
+disable playing non-critical hazards for n turns
+enable playing non-critical hazards for n turns
+disable playing critical hazards for n turns
+enable playing critical hazards for n turns
+disable playing non-critical remedies for n turns
+enable playing non-critical remedies for n turns
+disable playing critical remedies for n turns
+enable playing critical remedies for n turns
+disable playing safeties for n turns
+enable playing safeties for n turns
+
+thematic triggers:
+set environment name x at position n
+set environment description x at position n
+set environment music x at position n
+set environment ambience x at position n
+speak text x at position n
+
+sacrifices:
+temporarily disable safety for very small perks such as gaining 2 200 mile cards.
+exchange safeties for powerups, reshuffle the safeties into the deck.
+
+tracks:
+Build a custom track that strictly controls effects and events.
+
+track section:
+start point: int
+end point: int
+environments: list
+on enter area triggers: list
+on turn cycle triggers: list
+on player turn start triggers: list
+on player turn end triggers: list
+on exit area triggers: list
+
+section environment:
+start point: int
+end point: int
+name: string
+description: string
+music loop: string
+ambience loop: string
+text events: list

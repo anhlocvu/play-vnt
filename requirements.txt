@@ -1,0 +1,12 @@
+# Server Dependencies
+websockets>=14.0
+mashumaro>=3.11
+fluent-compiler>=1.0
+babel>=2.14
+openskill>=6.1.3
+argon2-cffi>=23.1
+
+# Client Dependencies
+wxPython>=4.2.0
+accessible-output2>=0.16
+sound-lib>=0.2.2
