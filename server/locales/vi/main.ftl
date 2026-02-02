@@ -72,7 +72,7 @@ goodbye = Tạm biệt!
 user-online = { $player } vừa online.
 user-offline = { $player } đã offline.
 user-is-admin = { $player } là quản trị viên của play vnt.
-user-is-server-owner = { $player } là chủ sở hữu máy chủ của play vnt.
+user-is-server-owner = { $player } là nhà phát triển của play vnt.
 online-users-none = Không có ai online.
 online-users-one = 1 người dùng: { $users }
 online-users-many = { $count } người dùng: { $users }
@@ -286,15 +286,15 @@ promote-announcement-you = Bạn đã được thăng chức lên Admin!
 demote-announcement = { $player } đã bị bãi nhiệm Admin.
 demote-announcement-you = Bạn đã bị bãi nhiệm Admin.
 not-admin-anymore = Bạn không còn là Admin và không thể thực hiện hành động này.
-not-server-owner = Chỉ chủ sở hữu máy chủ mới có thể thực hiện hành động này.
+not-server-owner = Chỉ nhà phát triển mới có thể thực hiện hành động này.
 
-# Chuyển quyền sở hữu máy chủ
-transfer-ownership = Chuyển quyền sở hữu
-transfer-ownership-menu-title = Chuyển quyền sở hữu
-no-admins-for-transfer = Không có Admin nào để chuyển quyền sở hữu.
-confirm-transfer-ownership = Bạn có chắc muốn chuyển quyền sở hữu máy chủ cho { $player } không? Bạn sẽ trở thành Admin.
-transfer-ownership-announcement = { $player } giờ là chủ sở hữu máy chủ play vnt!
-transfer-ownership-announcement-you = Bạn giờ là chủ sở hữu máy chủ play vnt!
+# Chuyển quyền nhà phát triển
+transfer-ownership = Chuyển quyền nhà phát triển
+transfer-ownership-menu-title = Chuyển quyền nhà phát triển
+no-admins-for-transfer = Không có Admin nào để chuyển quyền nhà phát triển.
+confirm-transfer-ownership = Bạn có chắc muốn chuyển quyền nhà phát triển cho { $player } không? Bạn sẽ trở thành Admin.
+transfer-ownership-announcement = { $player } giờ là nhà phát triển play vnt!
+transfer-ownership-announcement-you = Bạn giờ là nhà phát triển play vnt!
 
 # Cấm người dùng
 ban-user = Cấm người dùng

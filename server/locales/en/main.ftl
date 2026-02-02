@@ -72,7 +72,7 @@ goodbye = Goodbye!
 user-online = { $player } came online.
 user-offline = { $player } went offline.
 user-is-admin = { $player } is an administrator of play vnt.
-user-is-server-owner = { $player } is the server owner of play vnt.
+user-is-server-owner = { $player } is the developer of play vnt.
 online-users-none = No users online.
 online-users-one = 1 user: { $users }
 online-users-many = { $count } users: { $users }
@@ -286,15 +286,15 @@ promote-announcement-you = You have been promoted to admin!
 demote-announcement = { $player } has been demoted from admin.
 demote-announcement-you = You have been demoted from admin.
 not-admin-anymore = You are no longer an admin and cannot perform this action.
-not-server-owner = Only the server owner can perform this action.
+not-server-owner = Only the developer can perform this action.
 
-# Server ownership transfer
-transfer-ownership = Transfer Ownership
-transfer-ownership-menu-title = Transfer Ownership
-no-admins-for-transfer = No admins available to transfer ownership to.
-confirm-transfer-ownership = Are you sure you want to transfer server ownership to { $player }? You will be demoted to admin.
-transfer-ownership-announcement = { $player } is now the play vnt server owner!
-transfer-ownership-announcement-you = You are now the play vnt server owner!
+# Developer role transfer
+transfer-ownership = Transfer Developer Role
+transfer-ownership-menu-title = Transfer Developer Role
+no-admins-for-transfer = No admins available to transfer developer role to.
+confirm-transfer-ownership = Are you sure you want to transfer the developer role to { $player }? You will be demoted to admin.
+transfer-ownership-announcement = { $player } is now the play vnt developer!
+transfer-ownership-announcement-you = You are now the play vnt developer!
 
 # User banning
 ban-user = Ban User
@@ -313,7 +313,7 @@ you-have-been-unbanned = You have been unbanned from this server.
     Reason:
 ban-no-reason = No reason given.
 
-# Virtual bots (server owner only)
+# Virtual bots (developer only)
 virtual-bots = Virtual Bots
 virtual-bots-fill = Fill Server
 virtual-bots-clear = Clear All Bots
