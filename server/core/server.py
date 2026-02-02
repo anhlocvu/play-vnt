@@ -9,6 +9,7 @@ import json
 
 from .tick import TickScheduler, load_server_config
 from .administration import AdministrationMixin
+from .friends import FriendsMixin
 from .virtual_bots import VirtualBotManager
 from ..network.websocket_server import WebSocketServer, ClientConnection
 from ..persistence.database import Database
@@ -28,7 +29,7 @@ _MODULE_DIR = Path(__file__).parent.parent
 _DEFAULT_LOCALES_DIR = _MODULE_DIR / "locales"
 
 
-class Server(AdministrationMixin):
+class Server(AdministrationMixin, FriendsMixin):
     """
     Main play vnt v11 server.
 
@@ -432,6 +433,12 @@ class Server(AdministrationMixin):
                 user.speak_l("account-request", buffer="activity")
                 user.play_sound("accountrequest.ogg")
 
+        # Notify of pending friend requests
+        friend_requests = self._db.get_friend_requests(username)
+        if friend_requests:
+            user.speak_l("pending-friend-requests-notify", buffer="activity")
+            user.play_sound("accountrequest.ogg") # Reusing sound
+
         # Check if user is in a table
         table = self._tables.find_user_table(username)
 
@@ -528,6 +535,7 @@ class Server(AdministrationMixin):
                     text=Localization.get(user.locale, "my-stats"), id="my_stats"
                 ),
                 MenuItem(text=Localization.get(user.locale, "options"), id="options"),
+                MenuItem(text=Localization.get(user.locale, "friends"), id="friends"),
             ]
             # Add administration menu for admins
             if user.trust_level.value >= TrustLevel.ADMIN.value:
@@ -871,6 +879,20 @@ class Server(AdministrationMixin):
             await self._handle_games_selection(user, selection_id, state)
         elif current_menu == "tables_menu":
             await self._handle_tables_selection(user, selection_id, state)
+        elif current_menu == "friends_menu":
+            await self._handle_friends_menu_selection(user, selection_id)
+        elif current_menu == "friend_list_menu":
+            await self._handle_friend_list_selection(user, selection_id)
+        elif current_menu == "remove_friend_confirm_menu":
+            await self._handle_remove_friend_confirm_selection(user, selection_id, state)
+        elif current_menu == "friend_requests_menu":
+            await self._handle_friend_requests_selection(user, selection_id)
+        elif current_menu == "friend_request_actions_menu":
+            await self._handle_friend_request_actions_selection(user, selection_id, state)
+        elif current_menu == "send_friend_request_menu":
+            await self._handle_send_friend_request_selection(user, selection_id)
+        elif current_menu == "list_all_users_friends_menu":
+            await self._handle_list_all_users_friends_selection(user, selection_id)
         elif current_menu == "active_tables_menu":
             await self._handle_active_tables_selection(user, selection_id)
         elif current_menu == "join_menu":
@@ -954,6 +976,8 @@ class Server(AdministrationMixin):
             self._show_my_stats_menu(user)
         elif selection_id == "options":
             self._show_options_menu(user)
+        elif selection_id == "friends":
+            self._show_friends_menu(user)
         elif selection_id == "administration":
             if user.trust_level.value >= TrustLevel.ADMIN.value:
                 self._show_admin_menu(user)
@@ -2380,6 +2404,11 @@ class Server(AdministrationMixin):
         if current_menu == "decline_reason_editbox":
             text = packet.get("text", "")
             await self._handle_decline_reason_editbox(user, text, state)
+            return
+
+        if current_menu == "search_friend_editbox":
+            text = packet.get("text", "")
+            await self._handle_search_friend_username_input(user, text)
             return
 
         if current_menu == "ban_reason_editbox":

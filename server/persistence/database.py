@@ -149,6 +149,28 @@ class Database:
             )
         """)
 
+        # Friends table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS friends (
+                user_id1 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                user_id2 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                added_at TEXT NOT NULL,
+                PRIMARY KEY (user_id1, user_id2),
+                CHECK (user_id1 < user_id2)
+            )
+        """)
+
+        # Friend requests table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS friend_requests (
+                sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                sent_at TEXT NOT NULL,
+                PRIMARY KEY (sender_id, receiver_id),
+                CHECK (sender_id <> receiver_id)
+            )
+        """)
+
         self._conn.commit()
 
         # Run migrations for existing databases
@@ -453,6 +475,163 @@ class Database:
                 "SELECT id, username, password_hash, uuid, locale, preferences_json, trust_level, approved FROM users WHERE trust_level = ? ORDER BY username",
                 (TrustLevel.ADMIN.value,),
             )
+        rows = cursor.fetchall()
+        return [
+            UserRecord(
+                id=row["id"],
+                username=row["username"],
+                password_hash=row["password_hash"],
+                uuid=row["uuid"],
+                locale=row["locale"] or "en",
+                preferences_json=row["preferences_json"] or "{}",
+                trust_level=TrustLevel(row["trust_level"]),
+                approved=bool(row["approved"]) if row["approved"] is not None else False,
+            )
+            for row in rows
+        ]
+
+    # ==================== Friend System Methods ====================
+
+    def add_friend_request(self, sender_username: str, receiver_username: str) -> bool:
+        """Add a new friend request."""
+        sender = self.get_user(sender_username)
+        receiver = self.get_user(receiver_username)
+        if not sender or not receiver:
+            return False
+
+        cursor = self._conn.cursor()
+        try:
+            import datetime
+            now = datetime.datetime.now().isoformat()
+            cursor.execute(
+                "INSERT INTO friend_requests (sender_id, receiver_id, sent_at) VALUES (?, ?, ?)",
+                (sender.id, receiver.id, now),
+            )
+            self._conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+    def get_friend_requests(self, username: str) -> list[str]:
+        """Get all pending friend requests for a user (usernames of senders)."""
+        user = self.get_user(username)
+        if not user:
+            return []
+
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "SELECT u.username FROM friend_requests fr JOIN users u ON fr.sender_id = u.id WHERE fr.receiver_id = ? ORDER BY fr.sent_at DESC",
+            (user.id,),
+        )
+        return [row["username"] for row in cursor.fetchall()]
+
+    def accept_friend_request(self, sender_username: str, receiver_username: str) -> bool:
+        """Accept a friend request and add as friends."""
+        sender = self.get_user(sender_username)
+        receiver = self.get_user(receiver_username)
+        if not sender or not receiver:
+            return False
+
+        cursor = self._conn.cursor()
+        try:
+            # Delete the request
+            cursor.execute(
+                "DELETE FROM friend_requests WHERE sender_id = ? AND receiver_id = ?",
+                (sender.id, receiver.id),
+            )
+            
+            # Add to friends table (ordered id1 < id2)
+            id1, id2 = sorted([sender.id, receiver.id])
+            import datetime
+            now = datetime.datetime.now().isoformat()
+            cursor.execute(
+                "INSERT OR IGNORE INTO friends (user_id1, user_id2, added_at) VALUES (?, ?, ?)",
+                (id1, id2, now),
+            )
+            self._conn.commit()
+            return True
+        except Exception:
+            self._conn.rollback()
+            return False
+
+    def reject_friend_request(self, sender_username: str, receiver_username: str) -> bool:
+        """Reject/delete a friend request."""
+        sender = self.get_user(sender_username)
+        receiver = self.get_user(receiver_username)
+        if not sender or not receiver:
+            return False
+
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "DELETE FROM friend_requests WHERE sender_id = ? AND receiver_id = ?",
+            (sender.id, receiver.id),
+        )
+        self._conn.commit()
+        return cursor.rowcount > 0
+
+    def get_friends(self, username: str) -> list[str]:
+        """Get all friends of a user."""
+        user = self.get_user(username)
+        if not user:
+            return []
+
+        cursor = self._conn.cursor()
+        # Friend can be in user_id1 or user_id2
+        cursor.execute(
+            """
+            SELECT u.username FROM friends f
+            JOIN users u ON u.id = CASE WHEN f.user_id1 = ? THEN f.user_id2 ELSE f.user_id1 END
+            WHERE f.user_id1 = ? OR f.user_id2 = ?
+            ORDER BY u.username
+            """,
+            (user.id, user.id, user.id),
+        )
+        return [row["username"] for row in cursor.fetchall()]
+
+    def remove_friend(self, username1: str, username2: str) -> bool:
+        """Remove a friend connection."""
+        user1 = self.get_user(username1)
+        user2 = self.get_user(username2)
+        if not user1 or not user2:
+            return False
+
+        id1, id2 = sorted([user1.id, user2.id])
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "DELETE FROM friends WHERE user_id1 = ? AND user_id2 = ?",
+            (id1, id2),
+        )
+        self._conn.commit()
+        return cursor.rowcount > 0
+
+    def are_friends(self, username1: str, username2: str) -> bool:
+        """Check if two users are friends."""
+        user1 = self.get_user(username1)
+        user2 = self.get_user(username2)
+        if not user1 or not user2:
+            return False
+
+        id1, id2 = sorted([user1.id, user2.id])
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM friends WHERE user_id1 = ? AND user_id2 = ?",
+            (id1, id2),
+        )
+        return cursor.fetchone() is not None
+
+    def has_pending_request(self, sender_username: str, receiver_username: str) -> bool:
+        """Check if there's a pending request between two users."""
+        sender = self.get_user(sender_username)
+        receiver = self.get_user(receiver_username)
+        if not sender or not receiver:
+            return False
+
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM friend_requests WHERE sender_id = ? AND receiver_id = ?",
+            (sender.id, receiver.id),
+        )
+        return cursor.fetchone() is not None
         users = []
         for row in cursor.fetchall():
             users.append(UserRecord(
