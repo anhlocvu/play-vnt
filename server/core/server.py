@@ -81,7 +81,7 @@ class Server(AdministrationMixin):
         # Initialize trust levels for users
         promoted_user = self._db.initialize_trust_levels()
         if promoted_user:
-            print(f"User '{promoted_user}' has been promoted to server owner (trust level 3).")
+            print(f"User '{promoted_user}' has been promoted to developer (trust level 3).")
 
         # Load existing tables
         self._load_tables()
@@ -254,7 +254,7 @@ class Server(AdministrationMixin):
             user.speak_l("user-is-admin", buffer="activity", player=admin_name)
 
     def _broadcast_server_owner_announcement(self, owner_name: str) -> None:
-        """Broadcast a server owner announcement to all approved online users."""
+        """Broadcast a developer announcement to all approved online users."""
         for username, user in self._users.items():
             if not user.approved:
                 continue  # Don't send broadcasts to unapproved users
@@ -419,7 +419,7 @@ class Server(AdministrationMixin):
         online_sound = "onlineadmin.ogg" if trust_level.value >= TrustLevel.ADMIN.value else "online.ogg"
         self._broadcast_presence_l("user-online", username, online_sound)
 
-        # If user is server owner, announce that; otherwise if admin, announce that
+        # If user is developer, announce that; otherwise if admin, announce that
         if trust_level.value >= TrustLevel.SERVER_OWNER.value:
             self._broadcast_server_owner_announcement(username)
         elif trust_level.value >= TrustLevel.ADMIN.value:

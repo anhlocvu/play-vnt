@@ -29,7 +29,7 @@ def require_admin(func):
 
 
 def require_server_owner(func):
-    """Decorator that checks if the user is the server owner before executing a server owner action."""
+    """Decorator that checks if the user is the developer before executing a developer action."""
     @functools.wraps(func)
     async def wrapper(self, owner, *args, **kwargs):
         if owner.trust_level.value < TrustLevel.SERVER_OWNER.value:
@@ -93,7 +93,7 @@ class AdministrationMixin:
                 id="manage_accounts",
             ),
         ]
-        # Only server owners can promote/demote admins, manage virtual bots, and transfer ownership
+        # Only developers can promote/demote admins, manage virtual bots, and transfer developer role
         if user.trust_level.value >= TrustLevel.SERVER_OWNER.value:
             items.append(
                 MenuItem(
@@ -268,7 +268,7 @@ class AdministrationMixin:
 
     def _show_demote_admin_menu(self, user: NetworkUser) -> None:
         """Show demote admin menu with list of admin users."""
-        # Exclude server owner from demotion list
+        # Exclude developer from demotion list
         admins = self._db.get_admin_users(include_server_owner=False)
 
         # Filter out the current user (can't demote yourself)
@@ -348,8 +348,8 @@ class AdministrationMixin:
         }
 
     def _show_transfer_ownership_menu(self, user: NetworkUser) -> None:
-        """Show transfer ownership menu with list of admin users."""
-        # Only admins can receive ownership (exclude server owner)
+        """Show transfer developer role menu with list of admin users."""
+        # Only admins can receive developer role (exclude developer)
         admins = self._db.get_admin_users(include_server_owner=False)
 
         if not admins:
@@ -371,7 +371,7 @@ class AdministrationMixin:
         self._user_states[user.username] = {"menu": "transfer_ownership_menu"}
 
     def _show_transfer_ownership_confirm_menu(self, user: NetworkUser, target_username: str) -> None:
-        """Show confirmation menu for transferring ownership."""
+        """Show confirmation menu for transferring developer role."""
         _speak_activity(user, "confirm-transfer-ownership", player=target_username)
         items = [
             MenuItem(text=Localization.get(user.locale, "confirm-yes"), id="yes"),
@@ -389,7 +389,7 @@ class AdministrationMixin:
         }
 
     def _show_transfer_broadcast_choice_menu(self, user: NetworkUser, target_username: str) -> None:
-        """Show menu to choose broadcast audience for ownership transfer."""
+        """Show menu to choose broadcast audience for developer role transfer."""
         items = [
             MenuItem(text=Localization.get(user.locale, "broadcast-to-all"), id="all"),
             MenuItem(text=Localization.get(user.locale, "broadcast-to-admins"), id="admins"),
@@ -725,7 +725,7 @@ class AdministrationMixin:
     async def _handle_transfer_ownership_selection(
         self, user: NetworkUser, selection_id: str
     ) -> None:
-        """Handle transfer ownership menu selection."""
+        """Handle transfer developer role menu selection."""
         if selection_id == "back":
             self._show_admin_menu(user)
         elif selection_id.startswith("transfer_"):
@@ -735,7 +735,7 @@ class AdministrationMixin:
     async def _handle_transfer_ownership_confirm_selection(
         self, user: NetworkUser, selection_id: str, state: dict
     ) -> None:
-        """Handle transfer ownership confirmation menu selection."""
+        """Handle transfer developer role confirmation menu selection."""
         target_username = state.get("target_username")
         if not target_username:
             self._show_transfer_ownership_menu(user)
@@ -745,7 +745,7 @@ class AdministrationMixin:
             # Show broadcast choice menu
             self._show_transfer_broadcast_choice_menu(user, target_username)
         else:
-            # No or back - return to transfer ownership menu
+            # No or back - return to transfer developer role menu
             self._show_transfer_ownership_menu(user)
 
     async def _handle_transfer_broadcast_choice_selection(
@@ -990,7 +990,7 @@ class AdministrationMixin:
     async def _promote_to_admin(
         self, owner: NetworkUser, username: str, broadcast_scope: str
     ) -> None:
-        """Promote a user to admin. Only server owner can do this."""
+        """Promote a user to admin. Only developer can do this."""
         # Update trust level in database
         self._db.update_user_trust_level(username, TrustLevel.ADMIN)
 
@@ -1006,7 +1006,7 @@ class AdministrationMixin:
 
         # Broadcast the announcement to others based on scope
         if broadcast_scope == "nobody":
-            # Silent mode - only notify the server owner who performed the action
+            # Silent mode - only notify the developer who performed the action
             _speak_activity(owner, "promote-announcement", player=username)
             owner.play_sound("accountpromoteadmin.ogg")
         else:
@@ -1025,7 +1025,7 @@ class AdministrationMixin:
     async def _demote_from_admin(
         self, owner: NetworkUser, username: str, broadcast_scope: str
     ) -> None:
-        """Demote an admin to regular user. Only server owner can do this."""
+        """Demote an admin to regular user. Only developer can do this."""
         # Update trust level in database
         self._db.update_user_trust_level(username, TrustLevel.USER)
 
@@ -1041,7 +1041,7 @@ class AdministrationMixin:
 
         # Broadcast the announcement to others based on scope
         if broadcast_scope == "nobody":
-            # Silent mode - only notify the server owner who performed the action
+            # Silent mode - only notify the developer who performed the action
             _speak_activity(owner, "demote-announcement", player=username)
             owner.play_sound("accountdemoteadmin.ogg")
         else:
@@ -1079,7 +1079,7 @@ class AdministrationMixin:
     async def _transfer_ownership(
         self, owner: NetworkUser, username: str, broadcast_scope: str
     ) -> None:
-        """Transfer server ownership to another admin. Only server owner can do this."""
+        """Transfer developer role to another admin. Only developer can do this."""
         # Update new owner to SERVER_OWNER
         self._db.update_user_trust_level(username, TrustLevel.SERVER_OWNER)
 
@@ -1120,7 +1120,7 @@ class AdministrationMixin:
     async def _ban_user(
         self, admin: NetworkUser, username: str, reason: str = "", broadcast_scope: str = "nobody"
     ) -> None:
-        """Ban a user. Admins and server owner can do this."""
+        """Ban a user. Admins and developer can do this."""
         # Check if the user is online first
         target_user = self._users.get(username)
 
@@ -1170,7 +1170,7 @@ class AdministrationMixin:
     async def _unban_user(
         self, admin: NetworkUser, username: str, reason: str = "", broadcast_scope: str = "nobody"
     ) -> None:
-        """Unban a user. Admins and server owner can do this."""
+        """Unban a user. Admins and developer can do this."""
         # Update trust level in database to USER
         self._db.update_user_trust_level(username, TrustLevel.USER)
 

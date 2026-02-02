@@ -271,10 +271,10 @@ class Database:
         Initialize trust levels for users who don't have one set.
 
         Sets all users without a trust level to USER.
-        If there's exactly one user and they have no trust level, sets them to SERVER_OWNER.
+        If there's exactly one user and they have no trust level, sets them to developer.
 
         Returns:
-            The username of the user promoted to server owner, or None if no promotion occurred.
+            The username of the user promoted to developer, or None if no promotion occurred.
         """
         cursor = self._conn.cursor()
 
@@ -290,7 +290,7 @@ class Database:
             total_users = cursor.fetchone()[0]
 
             if total_users == 1:
-                # First and only user - make them server owner
+                # First and only user - make them developer
                 username = users_without_trust[0]["username"]
                 cursor.execute(
                     "UPDATE users SET trust_level = ? WHERE id = ?",
@@ -415,7 +415,7 @@ class Database:
         return users
 
     def get_server_owner(self) -> UserRecord | None:
-        """Get the server owner (there should only be one)."""
+        """Get the developer (there should only be one)."""
         cursor = self._conn.cursor()
         cursor.execute(
             "SELECT id, username, password_hash, uuid, locale, preferences_json, trust_level, approved FROM users WHERE trust_level = ?",
@@ -439,8 +439,8 @@ class Database:
         """Get all users who are admins (trust_level >= ADMIN).
 
         Args:
-            include_server_owner: If True, includes the server owner in the list.
-                                  If False, only returns admins (not server owner).
+            include_server_owner: If True, includes the developer in the list.
+                                  If False, only returns admins (not developer).
         """
         cursor = self._conn.cursor()
         if include_server_owner:

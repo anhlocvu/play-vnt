@@ -26,7 +26,7 @@ class TrustLevel(Enum):
     BANNED = 0  # Banned user
     USER = 1  # Normal user
     ADMIN = 2  # Administrator
-    SERVER_OWNER = 3  # Server owner (highest privilege)
+    SERVER_OWNER = 3  # Developer (highest privilege)
 
 
 @dataclass
