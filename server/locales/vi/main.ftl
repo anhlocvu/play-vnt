@@ -347,6 +347,5 @@ enter-username-prompt = Nhập tên người dùng bạn muốn kết bạn:
 pending-friend-requests-notify = Bạn có lời mời kết bạn đang chờ! Vui lòng kiểm tra menu Bạn bè.
 friend-request-notification = [THÔNG BÁO] { $player } đã gửi lời mời kết bạn cho bạn.
 friend-accepted-notification = [THÔNG BÁO] { $player } đã chấp nhận lời mời kết bạn của bạn.
-ping-result = Ping: { $ms }ms
 
 

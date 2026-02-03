@@ -304,8 +304,6 @@ class Server(AdministrationMixin, FriendsMixin):
                 await self._handle_list_online(client)
             elif packet_type == "list_online_with_games":
                 await self._handle_list_online_with_games(client)
-            elif packet_type == "client_pong":
-                await self._handle_client_pong(client, packet)
 
     async def _handle_authorize(self, client: ClientConnection, packet: dict) -> None:
         """Handle authorization packet."""
@@ -2379,12 +2377,6 @@ class Server(AdministrationMixin, FriendsMixin):
                 names = Localization.format_list_and(user.locale, players)
                 key = "online-users-one" if len(players) == 1 else "online-users-many"
                 user.speak_l(key, count=len(players), users=names)
-            elif packet.get("key") == "f3":
-                # Start ping check
-                state = self._user_states.get(username, {})
-                state["ping_start"] = time.time()
-                self._user_states[username] = state
-                await client.send({"type": "server_ping"})
             return
         if table and table.game and user:
             player = table.game.get_player_by_id(user.uuid)
@@ -2607,23 +2599,6 @@ class Server(AdministrationMixin, FriendsMixin):
     async def _handle_ping(self, client: ClientConnection) -> None:
         """Handle ping request - respond immediately with pong."""
         await client.send({"type": "pong"})
-
-
-    async def _handle_client_pong(self, client: ClientConnection, packet: dict) -> None:
-        """Handle pong response from client to measure latency."""
-        username = client.username
-        if not username:
-            return
-
-        user = self._users.get(username)
-        if not user:
-            return
-
-        state = self._user_states.get(username, {})
-        start_time = state.pop("ping_start", None)
-        if start_time:
-            elapsed_ms = int((time.time() - start_time) * 1000)
-            user.speak_l("ping-result", ms=elapsed_ms)
 
 
 async def run_server(
