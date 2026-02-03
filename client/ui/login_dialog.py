@@ -7,6 +7,7 @@ from pathlib import Path
 # Add parent directory to path to import config_manager
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config_manager import ConfigManager
+from constants import VERSION, GAME_NAME
 
 
 class SetupAccountDialog(wx.Dialog):
@@ -65,7 +66,7 @@ class LoginDialog(wx.Dialog):
 
     def __init__(self, parent=None):
         """Initialize the login dialog."""
-        super().__init__(parent, title="play vnt Login", size=(500, 310)) # Adjusted size
+        super().__init__(parent, title=f"{GAME_NAME} Login", size=(500, 310)) # Adjusted size
 
         # Initialize config manager
         self.config_manager = ConfigManager()
@@ -106,7 +107,7 @@ class LoginDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Title
-        title = wx.StaticText(self.panel, label="play vnt 11.")
+        title = wx.StaticText(self.panel, label=f"{GAME_NAME} {VERSION}.")
         title_font = title.GetFont()
         title_font.PointSize += 4
         title_font = title_font.Bold()

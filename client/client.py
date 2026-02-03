@@ -12,11 +12,16 @@ Features:
 import wx
 from ui import MainWindow
 from ui.login_dialog import LoginDialog
+from constants import VERSION, GAME_NAME
+import updater
 
 
 def main():
     """Main entry point for the play vnt v9 client."""
     app = wx.App(False)
+
+    # Check for updates
+    updater.check_for_updates()
 
     # Show login dialog
     login_dialog = LoginDialog()

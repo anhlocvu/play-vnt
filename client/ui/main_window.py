@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from . import slash_commands
 from sound_manager import SoundManager
 from network_manager import NetworkManager
+from constants import VERSION, GAME_NAME
 from buffer_system import BufferSystem
 from config_manager import set_item_in_dict
 
@@ -30,7 +31,7 @@ class MainWindow(wx.Frame):
         """
         super().__init__(
             parent=None,
-            title="play vnt 11",
+            title=f"{GAME_NAME} {VERSION}",
             size=(1, 1),  # Minimal size for audio-only interface
         )
 
