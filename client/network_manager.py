@@ -32,7 +32,7 @@ class NetworkManager:
         Connect to server.
 
         Args:
-            server_url: WebSocket URL (e.g., "ws://localhost:2004")
+            server_url: WebSocket URL (e.g., "ws://lc.ktgame207.com:2004")
             username: Username for authorization
             password: Password for authorization
         """

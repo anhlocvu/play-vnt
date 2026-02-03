@@ -89,13 +89,13 @@ class LoginDialog(wx.Dialog):
         
         # Look for existing localhost server
         for sid, sdata in servers.items():
-            if sdata.get("host") == "localhost" and str(sdata.get("port")) == "2004":
+            if sdata.get("host") == "lc.ktgame207.com" and str(sdata.get("port")) == "2004":
                 target_server_id = sid
                 break
         
         if not target_server_id:
             # Create it
-            target_server_id = self.config_manager.add_server("Default Server", "localhost", "2004")
+            target_server_id = self.config_manager.add_server("Default Server", "lc.ktgame207.com", "2004")
 
         self.server_id = target_server_id
         # We don't need to 'select' it in UI since it's hardcoded, but we store ID for logic
