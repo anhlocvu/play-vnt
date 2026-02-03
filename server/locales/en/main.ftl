@@ -364,4 +364,6 @@ enter-username-prompt = Enter the username of the person you want to friend:
 pending-friend-requests-notify = You have pending friend requests! Please check the Friends menu.
 friend-request-notification = [NOTIFICATION] { $player } has sent you a friend request.
 friend-accepted-notification = [NOTIFICATION] { $player } has accepted your friend request.
+ping-result = Ping: { $ms }ms
+
 
