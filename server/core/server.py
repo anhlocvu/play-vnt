@@ -898,6 +898,8 @@ class Server(AdministrationMixin, FriendsMixin):
             await self._handle_active_tables_selection(user, selection_id)
         elif current_menu == "join_menu":
             await self._handle_join_selection(user, selection_id, state)
+        elif current_menu == "logout_confirm_menu":
+            await self._handle_logout_confirm_selection(user, selection_id)
         elif current_menu == "options_menu":
             await self._handle_options_selection(user, selection_id)
         elif current_menu == "language_menu":
@@ -983,8 +985,34 @@ class Server(AdministrationMixin, FriendsMixin):
             if user.trust_level.value >= TrustLevel.ADMIN.value:
                 self._show_admin_menu(user)
         elif selection_id == "logout":
+            self._show_logout_confirm_menu(user)
+
+
+    def _show_logout_confirm_menu(self, user: NetworkUser) -> None:
+        """Show logout confirmation menu."""
+        # Speak the title/prompt since show_menu doesn't support a title arg
+        user.speak_l("logout-confirm-title")
+        items = [
+            MenuItem(text=Localization.get(user.locale, "logout-confirm-yes"), id="yes"),
+            MenuItem(text=Localization.get(user.locale, "logout-confirm-no"), id="no"),
+        ]
+        user.show_menu(
+            "logout_confirm_menu",
+            items,
+            multiletter=False,
+            escape_behavior=EscapeBehavior.SELECT_LAST,
+        )
+        self._user_states[user.username] = {"menu": "logout_confirm_menu"}
+
+    async def _handle_logout_confirm_selection(
+        self, user: NetworkUser, selection_id: str
+    ) -> None:
+        """Handle logout confirmation selection."""
+        if selection_id == "yes":
             user.speak_l("goodbye", buffer="activity")
             await user.connection.send({"type": "disconnect", "reconnect": False})
+        else:
+            self._show_main_menu(user)
 
     async def _handle_options_selection(
         self, user: NetworkUser, selection_id: str

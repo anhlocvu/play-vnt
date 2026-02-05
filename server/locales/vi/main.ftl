@@ -67,6 +67,9 @@ spectator-left = { $player } đã dừng xem.
 # Chung
 welcome = Chào mừng đến với play vnt!
 goodbye = Tạm biệt!
+logout-confirm-title = Bạn có muốn đăng xuất không?
+logout-confirm-yes = Có, đăng xuất
+logout-confirm-no = Không, ở lại
 
 # Thông báo trạng thái người dùng
 user-online = { $player } vừa online.

@@ -67,6 +67,9 @@ spectator-left = { $player } stopped spectating.
 # General
 welcome = Welcome to play vnt!
 goodbye = Goodbye!
+logout-confirm-title = Do you want to logout?
+logout-confirm-yes = Yes, logout
+logout-confirm-no = No, stay
 
 # User presence announcements
 user-online = { $player } came online.
