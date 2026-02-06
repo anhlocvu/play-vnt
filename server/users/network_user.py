@@ -48,6 +48,10 @@ class NetworkUser(User):
     def username(self) -> str:
         return self._username
 
+    def set_username(self, username: str) -> None:
+        """Set the user's username."""
+        self._username = username
+
     @property
     def locale(self) -> str:
         return self._locale

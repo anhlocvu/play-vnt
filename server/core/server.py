@@ -922,6 +922,8 @@ class Server(AdministrationMixin, FriendsMixin):
             await self._handle_my_game_stats_selection(user, selection_id, state)
         elif current_menu == "online_users":
             self._restore_previous_menu(user, state)
+        elif current_menu == "rename_player_selection_menu":
+            await self._handle_rename_player_selection(user, selection_id)
         elif current_menu == "admin_menu":
             await self._handle_admin_menu_selection(user, selection_id)
         elif current_menu == "account_approval_menu":
@@ -1386,32 +1388,53 @@ class Server(AdministrationMixin, FriendsMixin):
         # Update host to the restorer
         game.host = user.username
 
-        # Attach users and transfer all human players
-        # NOTE: We must attach users by player.id (UUID), not by username.
-        # The deserialized game has player objects with their original IDs.
         for member in members_data:
             member_username = member.get("username")
+            member_id = member.get("player_id")
             is_bot = member.get("is_bot", False)
 
-            # Find the player object by name to get their ID
-            player = game.get_player_by_name(member_username)
-            if not player:
-                continue
-
             if is_bot:
+                # Bots are matched by name in members_data but we should use original ID
+                player = game.get_player_by_id(member_id) if member_id else game.get_player_by_name(member_username)
+                if not player:
+                    continue
                 # Recreate bot with the player's original ID
                 bot_user = Bot(member_username, uuid=player.id)
                 game.attach_user(player.id, bot_user)
             else:
-                # Attach human user by player ID
-                member_user = self._users.get(member_username)
+                # Search for human user by UUID (preferred) or username
+                member_user = None
+                if member_id:
+                    # Find online user by UUID
+                    for u in self._users.values():
+                        if u.uuid == member_id:
+                            member_user = u
+                            break
+                
+                if not member_user:
+                    member_user = self._users.get(member_username)
+
                 if member_user:
-                    table.add_member(member_username, member_user, as_spectator=False)
-                    game.attach_user(player.id, member_user)
-                    self._user_states[member_username] = {
-                        "menu": "in_game",
-                        "table_id": table.table_id,
-                    }
+                    current_username = member_user.username
+                    # Find the player object in the game state
+                    # It might have the old username, so we search by ID
+                    player = None
+                    if member_id:
+                        player = game.get_player_by_id(member_id)
+                    
+                    if not player:
+                        player = game.get_player_by_name(member_username)
+
+                    if player:
+                        # Update player name to their current (potentially renamed) username
+                        player.name = current_username
+                        
+                        table.add_member(current_username, member_user, as_spectator=False)
+                        game.attach_user(player.id, member_user)
+                        self._user_states[current_username] = {
+                            "menu": "in_game",
+                            "table_id": table.table_id,
+                        }
 
         # Setup keybinds (runtime only, not serialized)
         # Action sets are already restored from serialization
@@ -2360,12 +2383,13 @@ class Server(AdministrationMixin, FriendsMixin):
         # Get game JSON
         game_json = game.to_json()
 
-        # Build members list (includes bot status)
+        # Build members list (includes bot status and UUID)
         members_data = []
         for player in game.players:
             members_data.append(
                 {
                     "username": player.name,
+                    "player_id": player.id,
                     "is_bot": player.is_bot,
                 }
             )
@@ -2438,6 +2462,11 @@ class Server(AdministrationMixin, FriendsMixin):
         if current_menu == "search_friend_editbox":
             text = packet.get("text", "")
             await self._handle_search_friend_username_input(user, text)
+            return
+
+        if current_menu == "rename_player_editbox":
+            text = packet.get("text", "")
+            await self._handle_rename_player_editbox(user, text, state)
             return
 
         if current_menu == "ban_reason_editbox":

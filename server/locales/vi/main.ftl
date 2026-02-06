@@ -318,9 +318,15 @@ you-have-been-unbanned = Bạn đã được bỏ cấm khỏi máy chủ này.
 # Quản lý tài khoản
 manage-accounts = Quản lý tài khoản
 reset-password = Đổi mật khẩu
+rename-player = Đổi tên người chơi
 delete-account = Xóa tài khoản
-password-reset-prompt = Nhập mật khẩu mới cho { $player } (hoặc Escape để hủy):
+password-reset-prompt = Nhập mật khẩu mới cho { $player } (hoặc Esc để hủy):
+rename-player-prompt = Nhập tên mới cho { $player }:
+rename-name-taken = Tên { $name } đã có người sử dụng.
 password-reset-success = Đã đổi mật khẩu cho { $player }.
+rename-success = Đã đổi tên { $old_name } thành { $new_name }.
+rename-broadcast = { $old_name } đã được đổi tên thành { $new_name }.
+your-name-changed = Tài khoản của bạn đã được đổi tên thành { $new_name }.
 confirm-delete-account = Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản của { $player } không? Hành động này không thể hoàn tác!
 account-deleted = Đã xóa tài khoản của { $player }.
 # Hệ thống bạn bè

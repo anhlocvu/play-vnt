@@ -168,7 +168,7 @@ class GameResultMixin:
                 items = [MenuItem(text=line, id="score_line") for line in lines]
                 # Add Leave button at the end
                 items.append(MenuItem(
-                    text="Congratulations you did great!",
+                    text=Localization.get(user.locale, "game-leave"),
                     id="leave_game"
                 ))
                 user.show_menu("game_over", items, multiletter=False)

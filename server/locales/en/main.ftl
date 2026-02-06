@@ -336,9 +336,15 @@ virtual-bots-status-report = Virtual Bots: { $total } total, { $online } online,
 # Account management
 manage-accounts = Manage Accounts
 reset-password = Reset Password
+rename-player = Rename Player
 delete-account = Delete Account
 password-reset-prompt = Enter new password for { $player } (or Escape to cancel):
+rename-player-prompt = Enter new name for { $player }:
+rename-name-taken = The name { $name } is already taken.
 password-reset-success = Password reset for { $player }.
+rename-success = Renamed { $old_name } to { $new_name }.
+rename-broadcast = { $old_name } has been renamed to { $new_name }.
+your-name-changed = Your account has been renamed to { $new_name }.
 confirm-delete-account = Are you sure you want to PERMANENTLY DELETE { $player }'s account? This action cannot be undone!
 # Friend system
 friends = Friends

@@ -1179,3 +1179,47 @@ class Database:
         cursor = self._conn.cursor()
         cursor.execute("DELETE FROM virtual_bots")
         self._conn.commit()
+
+    def rename_user(self, old_username: str, new_username: str) -> bool:
+        """Rename a user account and update all related tables.
+        
+        Returns:
+            True if rename was successful, False otherwise.
+        """
+        if self.user_exists(new_username):
+            return False
+
+        cursor = self._conn.cursor()
+        try:
+            # Update users table
+            cursor.execute(
+                "UPDATE users SET username = ? WHERE username = ?",
+                (new_username, old_username),
+            )
+            
+            # Update tables table (host column)
+            cursor.execute(
+                "UPDATE tables SET host = ? WHERE host = ?",
+                (new_username, old_username),
+            )
+            
+            # Update saved_tables table (username)
+            cursor.execute(
+                "UPDATE saved_tables SET username = ? WHERE username = ?",
+                (new_username, old_username),
+            )
+            
+            # Update game_result_players (historical display names)
+            cursor.execute(
+                "UPDATE game_result_players SET player_name = ? WHERE player_name = ?",
+                (new_username, old_username),
+            )
+
+            # Note: We don't update members_json here as it's complex to do in SQL.
+            # Active tables in memory will be handled by the Server class.
+            
+            self._conn.commit()
+            return True
+        except sqlite3.Error:
+            self._conn.rollback()
+            return False

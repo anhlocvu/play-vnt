@@ -152,11 +152,12 @@ class AdministrationMixin:
             escape_behavior=EscapeBehavior.SELECT_LAST,
         )
         self._user_states[user.username] = {"menu": "manage_accounts_menu"}
-
+        
     def _show_user_management_actions_menu(self, user: NetworkUser, target_username: str) -> None:
         """Show actions for a specific user (reset password, delete account)."""
         items = [
             MenuItem(text=Localization.get(user.locale, "reset-password"), id="reset_password"),
+            MenuItem(text=Localization.get(user.locale, "rename-player"), id="rename_player"),
             MenuItem(text=Localization.get(user.locale, "delete-account"), id="delete_account"),
             MenuItem(text=Localization.get(user.locale, "back"), id="back"),
         ]
@@ -183,6 +184,21 @@ class AdministrationMixin:
         )
         self._user_states[user.username] = {
             "menu": "password_reset_editbox",
+            "target_username": target_username,
+        }
+
+    def _show_rename_player_editbox(self, user: NetworkUser, target_username: str) -> None:
+        """Show editbox for entering new username."""
+        prompt = Localization.get(user.locale, "rename-player-prompt", player=target_username)
+        user.show_editbox(
+            "rename_player",
+            prompt,
+            default_value=target_username,
+            multiline=False,
+            read_only=False,
+        )
+        self._user_states[user.username] = {
+            "menu": "rename_player_editbox",
             "target_username": target_username,
         }
 
@@ -616,24 +632,20 @@ class AdministrationMixin:
         if selection_id == "approve":
             await self._approve_user(user, pending_username)
         elif selection_id == "decline":
-            self._show_decline_reason_editbox(user, pending_username)
+            prompt = Localization.get(user.locale, "decline-reason-prompt")
+            user.show_editbox(
+                "decline_reason",
+                prompt,
+                default_value="",
+                multiline=False,
+                read_only=False,
+            )
+            self._user_states[user.username] = {
+                "menu": "decline_reason_editbox",
+                "pending_username": pending_username,
+            }
         elif selection_id == "back":
             self._show_account_approval_menu(user)
-
-    def _show_decline_reason_editbox(self, user: NetworkUser, pending_username: str) -> None:
-        """Show editbox for entering decline reason."""
-        prompt = Localization.get(user.locale, "decline-reason-prompt")
-        user.show_editbox(
-            "decline_reason",
-            prompt,
-            default_value="",
-            multiline=False,
-            read_only=False,
-        )
-        self._user_states[user.username] = {
-            "menu": "decline_reason_editbox",
-            "pending_username": pending_username,
-        }
 
     async def _handle_decline_reason_editbox(
         self, admin: NetworkUser, text: str, state: dict
@@ -862,6 +874,8 @@ class AdministrationMixin:
 
         if selection_id == "reset_password":
             self._show_password_reset_editbox(user, target_username)
+        elif selection_id == "rename_player":
+            self._show_rename_player_editbox(user, target_username)
         elif selection_id == "delete_account":
             self._show_delete_account_confirm_menu(user, target_username)
         elif selection_id == "back":
@@ -878,6 +892,21 @@ class AdministrationMixin:
 
         if text.strip():
             await self._reset_password(admin, target_username, text.strip())
+        else:
+            self._show_user_management_actions_menu(admin, target_username)
+
+    async def _handle_rename_player_editbox(
+        self, admin: NetworkUser, text: str, state: dict
+    ) -> None:
+        """Handle rename player editbox submission."""
+        target_username = state.get("target_username")
+        if not target_username:
+            self._show_manage_accounts_menu(admin)
+            return
+
+        new_username = text.strip()
+        if new_username and new_username != target_username:
+            await self._rename_user(admin, target_username, new_username)
         else:
             self._show_user_management_actions_menu(admin, target_username)
 
@@ -1075,6 +1104,21 @@ class AdministrationMixin:
             _speak_activity(user, message_id, player=player_name)
             user.play_sound(sound)
 
+    def _broadcast_rename(
+        self,
+        old_name: str,
+        new_name: str,
+        exclude_username: str | None = None,
+    ) -> None:
+        """Broadcast a player rename announcement to everyone."""
+        for username, user in self._users.items():
+            if not user.approved:
+                continue
+            if exclude_username and username == exclude_username:
+                continue
+            _speak_activity(user, "rename-broadcast", old_name=old_name, new_name=new_name)
+            user.play_sound("accountactionnotify.ogg")
+
     @require_server_owner
     async def _transfer_ownership(
         self, owner: NetworkUser, username: str, broadcast_scope: str
@@ -1236,6 +1280,61 @@ class AdministrationMixin:
                 })
 
         self._show_manage_accounts_menu(admin)
+
+    @require_admin
+    async def _rename_user(self, admin: NetworkUser, old_username: str, new_username: str) -> None:
+        """Rename a user account."""
+        if self._db.user_exists(new_username):
+            _speak_activity(admin, "rename-name-taken", name=new_username)
+            self._show_rename_player_editbox(admin, old_username)
+            return
+
+        if self._db.rename_user(old_username, new_username):
+            # Check if user is online
+            target_user = self._users.get(old_username)
+            if target_user:
+                # Update user object
+                target_user.set_username(new_username)
+                
+                # Update server's user tracking
+                self._users[new_username] = self._users.pop(old_username)
+                
+                # Update user states
+                if old_username in self._user_states:
+                    self._user_states[new_username] = self._user_states.pop(old_username)
+                
+                # Update active tables
+                for table in self._tables.get_all_tables():
+                    # Update member list
+                    for member in table.members:
+                        if member.username == old_username:
+                            member.username = new_username
+                    # Update users dict
+                    if old_username in table._users:
+                        table._users[new_username] = table._users.pop(old_username)
+                    # Update host
+                    if table.host == old_username:
+                        table.host = new_username
+                    # Update game players
+                    if table.game:
+                        for player in table.game.players:
+                            if player.name == old_username:
+                                player.name = new_username
+
+            # Notify online user
+            if target_user:
+                target_user.speak_l("your-name-changed", new_name=new_username, buffer="activity")
+                target_user.play_sound("accountapprove.ogg")
+
+            # Broadcast to everyone
+            self._broadcast_rename(old_username, new_username)
+            
+            # Notify other admins
+            self._notify_admins(
+                "account-action", "accountactionnotify.ogg", exclude_username=admin.username
+            )
+        
+        self._show_user_management_actions_menu(admin, new_username)
 
     # ==================== Virtual Bot Actions ====================
 
