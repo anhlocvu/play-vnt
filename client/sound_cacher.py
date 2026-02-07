@@ -25,19 +25,4 @@ class SoundCacher:
             sound.set_frequency(int(sound.get_frequency() * pitch))
         sound.play()
         self.refs.append(sound)
-
-        # Fix memory leak: remove sound from refs when it's done playing
-        def on_finished(handle, channel, data, user):
-            if sound in self.refs:
-                self.refs.remove(sound)
-
-        # We need to register this callback with BASS via sound_lib stream
-        try:
-            from sound_lib.external.pybass import BASS_ChannelSetSync, BASS_SYNC_END, SYNCPROC
-            # Keep a reference to the callback to prevent GC
-            sound._finished_callback = SYNCPROC(on_finished)
-            BASS_ChannelSetSync(sound.handle, BASS_SYNC_END, 0, sound._finished_callback, None)
-        except Exception:
-            pass
-
         return sound

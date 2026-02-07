@@ -175,18 +175,14 @@ class AudioPlaylist:
         Returns:
             Duration in seconds, or 0 if unable to determine
         """
-        track_path = os.path.join(self.sound_manager.sounds_folder, track)
-        
-        # Check cache first
-        if track_path in self.sound_manager._duration_cache:
-            return self.sound_manager._duration_cache[track_path]
-
         try:
+            track_path = os.path.join(self.sound_manager.sounds_folder, track)
+
             # Load the file to get its duration
             import ctypes
             from sound_lib import stream as sound_stream
 
-            # Check sound cache first (memory buffer)
+            # Check cache first
             if track_path not in self.sound_manager.sound_cacher.cache:
                 with open(track_path, "rb") as f:
                     self.sound_manager.sound_cacher.cache[track_path] = (
@@ -202,15 +198,15 @@ class AudioPlaylist:
 
             # Get length in seconds
             duration = temp_stream.length
-            
-            # Cache the duration
-            self.sound_manager._duration_cache[track_path] = duration
 
             # Clean up temp stream
             temp_stream.free()
 
             return duration
         except Exception:
+            import traceback
+
+            traceback.print_exc()
             return 0
 
     def get_total_duration(self):
@@ -348,9 +344,6 @@ class SoundManager:
 
         # Playlist system - now supports multiple playlists
         self.playlists = {}  # {playlist_id: AudioPlaylist}
-        
-        # Duration cache for playlist optimization
-        self._duration_cache = {}  # {track_path: duration_seconds}
 
     def play(self, sound_name, volume=1.0, pan=0.0, pitch=1.0):
         """

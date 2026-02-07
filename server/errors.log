@@ -15,3 +15,125 @@ Traceback (most recent call last):
   File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
     raise self.protocol.handshake_exc
 websockets.exceptions.InvalidMessage: did not receive a valid HTTP request
+2026-02-07 16:59:38,746 ERROR websockets.server: opening handshake failed
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 138, in parse
+    request_line = yield from parse_line(read_line)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 310, in parse_line
+    raise EOFError("line without CRLF")
+EOFError: line without CRLF
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 562, in parse
+    request = yield from Request.parse(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 140, in parse
+    raise EOFError("connection closed while reading HTTP request line") from exc
+EOFError: connection closed while reading HTTP request line
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 354, in conn_handler
+    await connection.handshake(
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
+    raise self.protocol.handshake_exc
+websockets.exceptions.InvalidMessage: did not receive a valid HTTP request
+2026-02-07 16:59:39,958 ERROR websockets.server: opening handshake failed
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 138, in parse
+    request_line = yield from parse_line(read_line)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 310, in parse_line
+    raise EOFError("line without CRLF")
+EOFError: line without CRLF
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 562, in parse
+    request = yield from Request.parse(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 140, in parse
+    raise EOFError("connection closed while reading HTTP request line") from exc
+EOFError: connection closed while reading HTTP request line
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 354, in conn_handler
+    await connection.handshake(
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
+    raise self.protocol.handshake_exc
+websockets.exceptions.InvalidMessage: did not receive a valid HTTP request
+2026-02-07 16:59:43,148 ERROR websockets.server: opening handshake failed
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 354, in conn_handler
+    await connection.handshake(
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
+    raise self.protocol.handshake_exc
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 138, in accept
+    ) = self.process_request(request)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 239, in process_request
+    raise InvalidUpgrade(
+websockets.exceptions.InvalidUpgrade: missing Connection header
+2026-02-07 16:59:45,592 ERROR websockets.server: opening handshake failed
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 562, in parse
+    request = yield from Request.parse(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 147, in parse
+    raise ValueError(
+ValueError: unsupported protocol; expected HTTP/1.1: PRI * HTTP/2.0
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 354, in conn_handler
+    await connection.handshake(
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
+    raise self.protocol.handshake_exc
+websockets.exceptions.InvalidMessage: did not receive a valid HTTP request
+2026-02-07 17:00:07,010 ERROR websockets.server: opening handshake failed
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 138, in parse
+    request_line = yield from parse_line(read_line)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 310, in parse_line
+    raise EOFError("line without CRLF")
+EOFError: line without CRLF
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 562, in parse
+    request = yield from Request.parse(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\http11.py", line 140, in parse
+    raise EOFError("connection closed while reading HTTP request line") from exc
+EOFError: connection closed while reading HTTP request line
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 354, in conn_handler
+    await connection.handshake(
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
+    raise self.protocol.handshake_exc
+websockets.exceptions.InvalidMessage: did not receive a valid HTTP request
+2026-02-07 17:00:10,715 ERROR websockets.server: opening handshake failed
+Traceback (most recent call last):
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 354, in conn_handler
+    await connection.handshake(
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\asyncio\server.py", line 205, in handshake
+    raise self.protocol.handshake_exc
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 138, in accept
+    ) = self.process_request(request)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LCBoy\AppData\Local\Programs\Python\Python311\Lib\site-packages\websockets\server.py", line 239, in process_request
+    raise InvalidUpgrade(
+websockets.exceptions.InvalidUpgrade: missing Connection header
