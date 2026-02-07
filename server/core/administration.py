@@ -193,7 +193,7 @@ class AdministrationMixin:
         user.show_editbox(
             "rename_player",
             prompt,
-            default_value=target_username,
+            default_value="",
             multiline=False,
             read_only=False,
         )
@@ -1328,6 +1328,19 @@ class AdministrationMixin:
 
             # Broadcast to everyone
             self._broadcast_rename(old_username, new_username)
+
+            # If the renamed user is an Admin or Developer, log them out to prevent account duplication issues
+            if target_user and target_user.trust_level.value >= TrustLevel.ADMIN.value:
+                # Disconnect after a short delay to ensure messages are delivered
+                async def disconnect_renamed_admin():
+                    await asyncio.sleep(0.5)
+                    await target_user.connection.send({
+                        "type": "disconnect",
+                        "reconnect": False,
+                        "show_message": True,
+                        "return_to_login": True,
+                    })
+                asyncio.create_task(disconnect_renamed_admin())
             
             # Notify other admins
             self._notify_admins(
