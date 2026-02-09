@@ -1191,32 +1191,96 @@ class Database:
 
         cursor = self._conn.cursor()
         try:
-            # Update users table
+            # 1. Update users table
             cursor.execute(
                 "UPDATE users SET username = ? WHERE username = ?",
                 (new_username, old_username),
             )
+            # If no rows were updated, the old user doesn't exist
+            if cursor.rowcount == 0:
+                return False
             
-            # Update tables table (host column)
+            # 2. Update simple string columns in other tables
+            # Tables table
             cursor.execute(
                 "UPDATE tables SET host = ? WHERE host = ?",
                 (new_username, old_username),
             )
             
-            # Update saved_tables table (username)
+            # Saved tables
             cursor.execute(
                 "UPDATE saved_tables SET username = ? WHERE username = ?",
                 (new_username, old_username),
             )
             
-            # Update game_result_players (historical display names)
+            # Game results
+            cursor.execute(
+                "UPDATE game_result_players SET player_id = ? WHERE player_id = ?",
+                (new_username, old_username),
+            )
             cursor.execute(
                 "UPDATE game_result_players SET player_name = ? WHERE player_name = ?",
                 (new_username, old_username),
             )
+            
+            # Ratings
+            cursor.execute(
+                "UPDATE player_ratings SET player_id = ? WHERE player_id = ?",
+                (new_username, old_username),
+            )
+            
+            # Virtual bots
+            cursor.execute(
+                "UPDATE virtual_bots SET name = ? WHERE name = ?",
+                (new_username, old_username),
+            )
 
-            # Note: We don't update members_json here as it's complex to do in SQL.
-            # Active tables in memory will be handled by the Server class.
+            # 3. Update members_json in tables (Active tables)
+            cursor.execute("SELECT table_id, members_json FROM tables WHERE members_json LIKE ?", 
+                           (f'%"{old_username}"%',))
+            rows = cursor.fetchall()
+            for row in rows:
+                table_id = row["table_id"]
+                try:
+                    members = json.loads(row["members_json"])
+                    changed = False
+                    for member in members:
+                        if member.get("username") == old_username:
+                            member["username"] = new_username
+                            changed = True
+                    if changed:
+                        cursor.execute(
+                            "UPDATE tables SET members_json = ? WHERE table_id = ?",
+                            (json.dumps(members), table_id)
+                        )
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+            # 4. Update members_json in saved_tables
+            cursor.execute("SELECT id, members_json FROM saved_tables WHERE members_json LIKE ?", 
+                           (f'%"{old_username}"%',))
+            rows = cursor.fetchall()
+            for row in rows:
+                save_id = row["id"]
+                try:
+                    members = json.loads(row["members_json"])
+                    changed = False
+                    for member in members:
+                        if member.get("username") == old_username:
+                            member["username"] = new_username
+                            changed = True
+                    if changed:
+                        cursor.execute(
+                            "UPDATE saved_tables SET members_json = ? WHERE id = ?",
+                            (json.dumps(members), save_id)
+                        )
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+            # 5. Final safety: Clean up any straggling old_username entries in users table
+            # (Should be handled by UPDATE, but this ensures no "clones" remain)
+            cursor.execute("DELETE FROM users WHERE username = ? AND id != (SELECT id FROM users WHERE username = ?)",
+                           (old_username, new_username))
             
             self._conn.commit()
             return True

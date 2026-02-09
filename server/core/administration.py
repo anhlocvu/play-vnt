@@ -1,5 +1,6 @@
 """Administration functionality for the PlayPalace server."""
 
+import asyncio
 import functools
 from typing import TYPE_CHECKING
 
@@ -1289,52 +1290,45 @@ class AdministrationMixin:
             self._show_rename_player_editbox(admin, old_username)
             return
 
+        # Target user object if online
+        target_user = self._users.get(old_username)
+        
+        if target_user:
+            # 1. Notify the user
+            target_user.speak_l("your-name-changed", new_name=new_username, buffer="activity")
+            target_user.play_sound("accountapprove.ogg")
+            
+            # 2. Wait slightly for the message to be queued
+            await asyncio.sleep(0.5)
+            
+            # 3. Disconnect the user
+            # They must log back in with their NEW username
+            await target_user.connection.send({"type": "disconnect", "reconnect": False})
+            
+            # 4. Remove from online tracking
+            self._users.pop(old_username, None)
+            self._user_states.pop(old_username, None)
+            
+            # Note: Active tables/games will be cleaned up by the connection_lost handler
+            # as the user is now considered disconnected.
+
+        # Perform the actual rename in DB across all tables
         if self._db.rename_user(old_username, new_username):
-            # Check if user is online
-            target_user = self._users.get(old_username)
-            if target_user:
-                # Update user object
-                target_user.set_username(new_username)
-                
-                # Update server's user tracking
-                self._users[new_username] = self._users.pop(old_username)
-                
-                # Update user states
-                if old_username in self._user_states:
-                    self._user_states[new_username] = self._user_states.pop(old_username)
-                
-                # Update active tables
-                for table in self._tables.get_all_tables():
-                    # Update member list
-                    for member in table.members:
-                        if member.username == old_username:
-                            member.username = new_username
-                    # Update users dict
-                    if old_username in table._users:
-                        table._users[new_username] = table._users.pop(old_username)
-                    # Update host
-                    if table.host == old_username:
-                        table.host = new_username
-                    # Update game players
-                    if table.game:
-                        for player in table.game.players:
-                            if player.name == old_username:
-                                player.name = new_username
-
-            # Notify online user
-            if target_user:
-                target_user.speak_l("your-name-changed", new_name=new_username, buffer="activity")
-                target_user.play_sound("accountapprove.ogg")
-
-            # Broadcast to everyone
+            # Broadcast rename announcement to all other players
             self._broadcast_rename(old_username, new_username)
             
-            # Notify other admins
+            # Notify other online admins
             self._notify_admins(
                 "account-action", "accountactionnotify.ogg", exclude_username=admin.username
             )
-        
-        self._show_user_management_actions_menu(admin, new_username)
+            
+            # Show management menu with the NEW name (only if admin is still online/not self-renamed)
+            if admin.username in self._users:
+                self._show_user_management_actions_menu(admin, new_username)
+        else:
+            # Fallback to old name if DB rename failed (only if admin still online)
+            if admin.username in self._users:
+                self._show_user_management_actions_menu(admin, old_username)
 
     # ==================== Virtual Bot Actions ====================
 
